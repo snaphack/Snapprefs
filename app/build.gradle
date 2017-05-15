@@ -15,6 +15,7 @@ android {
     }
     lintOptions{
         checkReleaseBuilds false
+        abortOnError false
     }
 
     buildTypes {
@@ -43,4 +44,5 @@ dependencies {
     compile 'com.yalantis:ucrop:2.2.0-native'
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.pavelsikun:material-seekbar-preference:2.3.0+'
+    compile 'com.squareup.retrofit2:retrofit:2.0.2'
 }
